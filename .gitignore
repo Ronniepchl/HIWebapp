@@ -1,0 +1,9 @@
+# Local Claude Code tooling, plugins, and machine-specific settings
+.claude/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+
+# Dependencies (none committed for this static app)
+node_modules/

@@ -34,7 +34,7 @@ window.TIERS = ['VIP','Gold','Standard'];
    JSONP (a <script> tag) so it works from any static host with
    no CORS configuration on the Apps Script side.
    =========================================================== */
-window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzuSolQT6FEKXt39mGFVyzC0kzVvwo-wuRw6VCz35l93YU0EWdv9mZhBz_X1geWYsGULQ/exec'; // e.g. 'https://script.google.com/macros/s/AKfy.../exec'
+window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzn4ajLjkHPWiRLWj__vAIqzMvNBW4MvIPg-im62AXIGoA1qr8_6CrqIMBBm16whZ9slA/exec'; // e.g. 'https://script.google.com/macros/s/AKfy.../exec'
 /* Auth runs through the SAME web app (login is handled inside Code-Webapp.gs),
    so the login endpoint is just the data endpoint. Only override this if you
    ever split auth into a separate deployment. */

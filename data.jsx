@@ -34,14 +34,17 @@ window.TIERS = ['VIP','Gold','Standard'];
    JSONP (a <script> tag) so it works from any static host with
    no CORS configuration on the Apps Script side.
    =========================================================== */
-window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwAr2_iLrs-9lSPofLQ_TMAXBj0ohh58IpPfz2MzPVju0O9NDpptSxCsXglkZKc9Ea-3w/exec'; // e.g. 'https://script.google.com/macros/s/AKfy.../exec'
+window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzuSolQT6FEKXt39mGFVyzC0kzVvwo-wuRw6VCz35l93YU0EWdv9mZhBz_X1geWYsGULQ/exec'; // e.g. 'https://script.google.com/macros/s/AKfy.../exec'
+/* Auth runs through the SAME web app (login is handled inside Code-Webapp.gs),
+   so the login endpoint is just the data endpoint. Only override this if you
+   ever split auth into a separate deployment. */
+window.LOGIN_WEBAPP_URL = window.SHEET_WEBAPP_URL;
 
 var __ifsheetSeq = 0;
 
-/* Low-level JSONP request to the Apps Script web app. `params` is an object of
-   query params (e.g. { action:'addCustomer', name:'…' }); empty for a read. */
-window.sheetRequest = function (params, onSuccess, onError) {
-  var url = window.SHEET_WEBAPP_URL;
+/* Low-level JSONP request to any Apps Script web app `url`. `params` is an
+   object of query params (e.g. { action:'addCustomer', name:'…' }). */
+window.jsonpRequest = function (url, params, onSuccess, onError) {
   if (!url) { if (onError) onError('no-url'); return; }
   var cb = '__ifsheet_' + Date.now() + '_' + (++__ifsheetSeq);
   var script = document.createElement('script');
@@ -72,6 +75,30 @@ window.sheetRequest = function (params, onSuccess, onError) {
   }
   script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
   document.body.appendChild(script);
+};
+
+/* JSONP request to the data web app (Code-Webapp.gs). */
+window.sheetRequest = function (params, onSuccess, onError) {
+  window.jsonpRequest(window.SHEET_WEBAPP_URL, params, onSuccess, onError);
+};
+
+/* Authenticate via the web app (action=login is handled in Code-Webapp.gs).
+   Calls onSuccess({ ok, user, role, token }) on valid credentials, or
+   onError(message) on bad credentials / network / missing URL. */
+window.login = function (user, pass, onSuccess, onError) {
+  var url = window.LOGIN_WEBAPP_URL || window.SHEET_WEBAPP_URL;
+  if (!url) { if (onError) onError('Login endpoint not configured.'); return; }
+  window.jsonpRequest(
+    url,
+    { action: 'login', user: user, pass: pass },
+    function (res) {
+      if (res && res.ok) { if (onSuccess) onSuccess(res); }
+      else { if (onError) onError((res && res.error) || 'Incorrect username or password.'); }
+    },
+    function (e) {
+      if (onError) onError(e === 'timeout' ? 'Sign-in timed out. Check your connection.' : 'Could not reach the sign-in service.');
+    }
+  );
 };
 
 /* Read the whole dataset. */

@@ -2,8 +2,6 @@
    Exports window.LoginScreen */
 const { useState: lUseState } = React;
 
-const AUTH = { user: 'Panupong', pass: 'Aa12345*' };
-
 function LoginScreen({ onSuccess }) {
   const [user, setUser] = lUseState('');
   const [pass, setPass] = lUseState('');
@@ -15,14 +13,14 @@ function LoginScreen({ onSuccess }) {
     setErr('');
     if (!user.trim() || !pass) { setErr('Please enter your username and password.'); return; }
     setBusy(true);
-    setTimeout(() => {
-      if (user.trim() === AUTH.user && pass === AUTH.pass) {
-        onSuccess(user.trim());
-      } else {
-        setErr('Incorrect username or password.');
-        setBusy(false);
-      }
-    }, 600);
+    // Credentials are verified server-side by Code-login.gs (no hard-coded
+    // passwords in the client). onSuccess receives the display name + token.
+    window.login(
+      user.trim(),
+      pass,
+      (res) => { onSuccess(res.user || user.trim(), res.token); },
+      (message) => { setErr(message || 'Incorrect username or password.'); setBusy(false); }
+    );
   };
 
   const onKey = (e) => { if (e.key === 'Enter') submit(); };

@@ -115,8 +115,8 @@ function App() {
   const [recent, setRecent] = useState([]);       // [{type,id}] last opened
   const [authUser, setAuthUser] = useState(() => { try { return sessionStorage.getItem('if_auth') || null; } catch(e){ return null; } });
 
-  const signIn = (name) => { try { sessionStorage.setItem('if_auth', name); } catch(e){}; setAuthUser(name); };
-  const signOut = () => { try { sessionStorage.removeItem('if_auth'); } catch(e){}; setAuthUser(null); };
+  const signIn = (name, token) => { try { sessionStorage.setItem('if_auth', name); if (token) sessionStorage.setItem('if_token', token); } catch(e){}; setAuthUser(name); };
+  const signOut = () => { try { sessionStorage.removeItem('if_auth'); sessionStorage.removeItem('if_token'); } catch(e){}; setAuthUser(null); };
 
   const record = (type, id) => setRecent(r => [{ type, id }, ...r.filter(x => !(x.type===type && x.id===id))].slice(0, 5));
 

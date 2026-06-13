@@ -36,15 +36,19 @@ window.TIERS = ['VIP','Gold','Standard'];
    =========================================================== */
 window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwAr2_iLrs-9lSPofLQ_TMAXBj0ohh58IpPfz2MzPVju0O9NDpptSxCsXglkZKc9Ea-3w/exec'; // e.g. 'https://script.google.com/macros/s/AKfy.../exec'
 
-window.loadSheetData = function (onSuccess, onError) {
+var __ifsheetSeq = 0;
+
+/* Low-level JSONP request to the Apps Script web app. `params` is an object of
+   query params (e.g. { action:'addCustomer', name:'…' }); empty for a read. */
+window.sheetRequest = function (params, onSuccess, onError) {
   var url = window.SHEET_WEBAPP_URL;
   if (!url) { if (onError) onError('no-url'); return; }
-  var cb = '__ifsheet_' + Date.now();
+  var cb = '__ifsheet_' + Date.now() + '_' + (++__ifsheetSeq);
   var script = document.createElement('script');
   var done = false;
   var timer = setTimeout(function () {
     if (!done) { done = true; cleanup(); if (onError) onError('timeout'); }
-  }, 15000);
+  }, 20000);
   function cleanup() {
     clearTimeout(timer);
     try { delete window[cb]; } catch (e) { window[cb] = undefined; }
@@ -59,6 +63,28 @@ window.loadSheetData = function (onSuccess, onError) {
   script.onerror = function () {
     if (!done) { done = true; cleanup(); if (onError) onError('script-error'); }
   };
-  script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cb + '&t=' + Date.now();
+  var qs = ['callback=' + cb, 't=' + Date.now()];
+  var p = params || {};
+  for (var k in p) {
+    if (Object.prototype.hasOwnProperty.call(p, k) && p[k] != null && p[k] !== '') {
+      qs.push(encodeURIComponent(k) + '=' + encodeURIComponent(p[k]));
+    }
+  }
+  script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + qs.join('&');
   document.body.appendChild(script);
+};
+
+/* Read the whole dataset. */
+window.loadSheetData = function (onSuccess, onError) {
+  window.sheetRequest({}, onSuccess, onError);
+};
+
+/* Write a record. action ∈ addCustomer | addLead | addAgent | addNote.
+   Resolves with { ok, type, id, record } where `record` is already shaped
+   like the in-app entity, so the caller can drop it straight into state. */
+window.saveToSheet = function (action, fields, onSuccess, onError) {
+  var params = { action: action };
+  var f = fields || {};
+  for (var k in f) if (Object.prototype.hasOwnProperty.call(f, k)) params[k] = f[k];
+  window.sheetRequest(params, onSuccess, onError);
 };

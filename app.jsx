@@ -143,28 +143,51 @@ function App() {
   useEffect(() => { loadData(); }, []);
   const go = (id) => { setDetail(null); setProfileId(null); setTab(id); };
 
-  /* ---- state operations (Google Sheets writes, conceptually) ---- */
+  /* ---- state operations (persisted to Google Sheets) ----
+     Each add inserts optimistically with a temp id, writes to the sheet,
+     then swaps in the server record (real id) on success or rolls back on
+     failure. With no SHEET_WEBAPP_URL configured it stays local-only. */
+  const persistRow = (action, fields, tempId, key) => {
+    if (!window.saveToSheet || !window.SHEET_WEBAPP_URL) return; // local-only fallback
+    window.saveToSheet(action, fields,
+      (res) => {
+        const rec = res && res.record;
+        if (rec) setData(d => ({ ...d, [key]: d[key].map(x => x.id === tempId ? rec : x) }));
+        else if (res && res.id) setData(d => ({ ...d, [key]: d[key].map(x => x.id === tempId ? { ...x, id: res.id } : x) }));
+      },
+      (err) => {
+        console.warn('[InsureFlow] save failed (' + action + '):', err);
+        setData(d => ({ ...d, [key]: d[key].filter(x => x.id !== tempId) }));
+        try { window.alert('Could not save to Google Sheets — the entry was not added. Please try again.'); } catch (e) {}
+      }
+    );
+  };
+
   const addEntry = (name, src) => {
     const mono = (name.trim()[0]||'?') + (name.trim().split(' ')[1]?.[0]||'');
     const kind = addPipeline || tab;
+    const tempId = (kind==='agents'?'na':'nl') + Date.now();
     setData(d => {
       const nd = { ...d };
-      if (kind==='agents') nd.AGENTS = [{ id:'na'+Date.now(), name, job:src, date:'Just added', stage:'interested', note:'New candidate — reach out soon', mono }, ...d.AGENTS];
-      else nd.LEADS = [{ id:'nl'+Date.now(), name, src, date:'Just now', stage:'new', note:'New lead — not yet contacted', value:'฿—', mono }, ...d.LEADS];
+      if (kind==='agents') nd.AGENTS = [{ id:tempId, name, job:src, date:'Just added', stage:'interested', note:'New candidate — reach out soon', mono }, ...d.AGENTS];
+      else nd.LEADS = [{ id:tempId, name, src, date:'Just now', stage:'new', note:'New lead — not yet contacted', value:'฿—', mono }, ...d.LEADS];
       return nd;
     });
     setAdding(false);
     setAddPipeline(null);
+    if (kind==='agents') persistRow('addAgent', { name, job:src }, tempId, 'AGENTS');
+    else persistRow('addLead', { name, src }, tempId, 'LEADS');
   };
 
   const addCustomer = (f) => {
     const name = (f.name || '').trim() || 'New customer';
     const mono = name[0] + (name.split(' ')[1]?.[0] || '');
+    const tempId = 'nc'+Date.now();
     const cust = {
-      id:'nc'+Date.now(), name, en:'', policy:f.policy, premium:f.premium ? '฿'+f.premium+'/yr' : '฿—',
+      id:tempId, name, en:f.en||'', policy:f.policy, premium:f.premium ? '฿'+f.premium+'/yr' : '฿—',
       phone:f.phone || '—', bday:f.bday || '—', bdayDays:99, tier:f.tier, preferred:'LINE',
       last:'Just added', next:f.next ? 'Follow-up · '+f.next : 'Active', status:'ok', mono, years:0,
-      remarks: f.remark ? [{ date:'9 Jun 2026', text:f.remark }] : [],
+      remarks: f.remark ? [{ date:'Just now', text:f.remark }] : [],
     };
     setData(d => ({
       ...d,
@@ -172,19 +195,31 @@ function App() {
       ACTIVITIES: [{ id:'ac'+Date.now(), icon:'user', tone:'ok', title:'Customer added', who:name, when:'Today · '+nowTime(), note:'New customer record created.' }, ...d.ACTIVITIES],
     }));
     setAddCust(false);
+    persistRow('addCustomer',
+      { name, en:f.en||'', policy:f.policy||'', premium:f.premium||'', phone:f.phone||'', tier:f.tier||'', next:f.next||'', remark:f.remark||'' },
+      tempId, 'CUSTOMERS');
   };
 
   const addRemark = (custId, text) => {
+    const tempAct = 'ac'+Date.now();
+    let who = '';
     setData(d => {
       const c = d.CUSTOMERS.find(x => x.id === custId);
-      const who = c ? c.name : '';
+      who = c ? c.name : '';
       return {
         ...d,
         CUSTOMERS: d.CUSTOMERS.map(x => x.id === custId
-          ? { ...x, remarks:[{ date:'9 Jun 2026', text }, ...(x.remarks||[])], last:'Just now' } : x),
-        ACTIVITIES: [{ id:'ac'+Date.now(), icon:'note', tone:'info', title:'Note added', who, when:'Today · '+nowTime(), note:text }, ...d.ACTIVITIES],
+          ? { ...x, remarks:[{ date:'Just now', text }, ...(x.remarks||[])], last:'Just now' } : x),
+        ACTIVITIES: [{ id:tempAct, icon:'note', tone:'info', title:'Note added', who, when:'Today · '+nowTime(), note:text }, ...d.ACTIVITIES],
       };
     });
+    if (window.saveToSheet && window.SHEET_WEBAPP_URL) {
+      window.saveToSheet('addNote',
+        { relatedType:'customer', relatedId:custId, relatedName:who, subject:'Note', text },
+        (res) => { const rec = res && res.record; if (rec) setData(d => ({ ...d, ACTIVITIES: d.ACTIVITIES.map(a => a.id === tempAct ? rec : a) })); },
+        (err) => { console.warn('[InsureFlow] note save failed:', err); }
+      );
+    }
   };
 
   const updateCustomer = (custId, patch) => {

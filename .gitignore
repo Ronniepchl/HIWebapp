@@ -7,3 +7,6 @@ Thumbs.db
 
 # Dependencies (none committed for this static app)
 node_modules/
+
+# Backend lives in Google Apps Script, not the repo
+Code-Webapp.gs

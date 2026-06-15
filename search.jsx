@@ -75,8 +75,8 @@ function SearchOverlay({ open, data, recent, onClose, onOpen, onAct }) {
   const has = (s) => (s || '').toLowerCase().includes(query);
 
   const matchC = (c) => !query || has(c.name) || has(c.en) || has(c.policy) || (qd && digits(c.phone).includes(qd));
-  const matchL = (l) => !query || has(l.name) || has(l.src) || has(l.note);
-  const matchA = (a) => !query || has(a.name) || has(a.job);
+  const matchL = (l) => !query || has(l.name) || has(l.src) || has(l.note) || (qd && digits(l.phone).includes(qd));
+  const matchA = (a) => !query || has(a.name) || has(a.job) || (qd && digits(a.phone).includes(qd));
 
   const custs  = data.CUSTOMERS.filter(matchC);
   const leads  = data.LEADS.filter(matchL);

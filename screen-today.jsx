@@ -172,7 +172,7 @@ function CEOFocusHero({ focus, tasks, workload, dateStr, callTo, onOpenTarget, o
         <div className="eyebrow" style={{ display:'flex', alignItems:'center', gap:6 }}>
           <Icon name="spark" size={12} color="var(--gold-soft)" />CEO Focus · Today</div>
         <h1 style={{ fontSize:21, fontWeight:600, color:'var(--ink-hi)', letterSpacing:-0.3, margin:'5px 0 0', lineHeight:1.15 }}>
-          {greeting}, {focus.name}</h1>
+          {greeting}, NO.1</h1>
         <div style={{ fontSize:13, color:'var(--ink-mid)', marginTop:4 }}>
           {liveDate} · <span style={{ fontVariantNumeric:'tabular-nums' }}>{liveTime}</span>
           {tz && <span style={{ color:'var(--ink-low)' }}> · {tz.replace(/_/g, ' ')}</span>}</div>

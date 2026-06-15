@@ -147,6 +147,19 @@ function WorkloadCard({ count, label, color, glow }) {
 function CEOFocusHero({ focus, tasks, workload, dateStr, onOpenTarget, onNav, onCalendar, onNote }) {
   const top3 = tasks.slice(0, 3);
   const tgt = (t) => ({ type: t.relatedType, id: t.relatedId });
+
+  // Live clock — re-renders every second so the date/time stay current.
+  const [now, setNow] = React.useState(() => new Date());
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const h = now.getHours();
+  const greeting = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
+  const liveDate = now.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const liveTime = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  // The viewer's IANA timezone, e.g. "Asia/Bangkok".
+  const tz = (() => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { return ''; } })();
   return (
     <div className="card fu" style={{ padding:0, overflow:'hidden', position:'relative',
       border:'1px solid var(--gold-line)' }}>
@@ -159,8 +172,10 @@ function CEOFocusHero({ focus, tasks, workload, dateStr, onOpenTarget, onNav, on
         <div className="eyebrow" style={{ display:'flex', alignItems:'center', gap:6 }}>
           <Icon name="spark" size={12} color="var(--gold-soft)" />CEO Focus · Today</div>
         <h1 style={{ fontSize:21, fontWeight:600, color:'var(--ink-hi)', letterSpacing:-0.3, margin:'5px 0 0', lineHeight:1.15 }}>
-          Good morning, {focus.name}</h1>
-        <div style={{ fontSize:13, color:'var(--ink-mid)', marginTop:4 }}>{dateStr}</div>
+          {greeting}, {focus.name}</h1>
+        <div style={{ fontSize:13, color:'var(--ink-mid)', marginTop:4 }}>
+          {liveDate} · <span style={{ fontVariantNumeric:'tabular-nums' }}>{liveTime}</span>
+          {tz && <span style={{ color:'var(--ink-low)' }}> · {tz.replace(/_/g, ' ')}</span>}</div>
 
         <div style={{ fontSize:10.5, fontWeight:600, letterSpacing:1.4, textTransform:'uppercase',
           color:'var(--ink-low)', margin:'16px 0 9px' }}>Today's overview</div>
@@ -367,7 +382,7 @@ function UpcomingRow({ u, i, last }) {
 }
 
 function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete, onSnooze, onReport }) {
-  const dstr = new Date(2026, 5, 9).toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const dstr = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
   const PRANK = { high:0, normal:1, low:2 };
   const openTasks = data.TASKS
     .filter(t => t.status === 'Open' && t.due === 'today')

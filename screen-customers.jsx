@@ -36,7 +36,10 @@ function CustomerCard({ c, onOpen, i }) {
                 onClick={e=>{ e.stopPropagation();
                   if (c.phone && c.phone !== '—') window.location.href = 'tel:' + String(c.phone).replace(/[^\d+]/g, '');
                 }}><Icon name="phone" size={17} /></button>
-              <button className="rbtn" onClick={e=>e.stopPropagation()} title="Email"><Icon name="mail" size={17} /></button>
+              <button className="rbtn" title={c.email && c.email !== '—' ? 'Email ' + c.email : 'No email address'}
+                onClick={e=>{ e.stopPropagation();
+                  if (c.email && c.email !== '—') window.composeEmail(c.email);
+                }}><Icon name="mail" size={17} /></button>
               <button className="rbtn" onClick={e=>e.stopPropagation()} title="Note"><Icon name="note" size={17} /></button>
             </div>
           </div>

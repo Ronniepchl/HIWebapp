@@ -50,6 +50,16 @@ window.dialPhone = function (phone) {
   return true;
 };
 
+/* Open the device's mail composer (mailto:) with the recipient pre-filled and
+   ready to write. Returns false when there's no usable address so callers can
+   fall back. Used by every Email button across the app. */
+window.composeEmail = function (email) {
+  var addr = String(email == null ? '' : email).trim();
+  if (!addr || addr === '—' || addr.indexOf('@') < 0) return false;
+  window.location.href = 'mailto:' + addr;
+  return true;
+};
+
 var __ifsheetSeq = 0;
 
 /* Low-level JSONP request to any Apps Script web app `url`. `params` is an

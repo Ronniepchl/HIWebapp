@@ -290,7 +290,7 @@ function App() {
   };
   const searchAction = (kind, type, ent) => {
     if (kind === 'call') { window.dialPhone && window.dialPhone(ent.phone); return; }
-    if (kind === 'email') return; // would open mail client
+    if (kind === 'email') { window.composeEmail && window.composeEmail(ent.email); return; }
     setSearchOpen(false);
     if (kind === 'note') {
       if (type === 'customer') setNote({ open:true, presetId: ent.id });

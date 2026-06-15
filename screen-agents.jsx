@@ -67,7 +67,10 @@ function AgentCard({ a, i, onOpen, onSchedule }) {
             onClick={e=>{ e.stopPropagation();
               if (a.phone && a.phone !== '—') window.location.href = 'tel:' + String(a.phone).replace(/[^\d+]/g, '');
             }}><Icon name="phone" size={16} /></button>
-          <button className="rbtn" onClick={e=>{ e.stopPropagation(); }} title="Email"><Icon name="mail" size={16} /></button>
+          <button className="rbtn" title={a.email && a.email !== '—' ? 'Email ' + a.email : 'No email address'}
+            onClick={e=>{ e.stopPropagation();
+              if (a.email && a.email !== '—') window.composeEmail(a.email);
+            }}><Icon name="mail" size={16} /></button>
           <button className="rbtn" onClick={e=>{ e.stopPropagation(); onSchedule(a); }} title="Schedule next action"><Icon name="calendar" size={16} /></button>
         </div>
       </div>

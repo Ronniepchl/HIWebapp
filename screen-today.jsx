@@ -227,7 +227,7 @@ function CEOFocusHero({ focus, tasks, workload, dateStr, callTo, onOpenTarget, o
 }
 
 /* ---- Elegant birthday card (premium, not party) ---- */
-function BirthdayCard({ t, cust, onAction, onCall, onComplete, onNote, onOpen }) {
+function BirthdayCard({ t, cust, onAction, onCall, onEmail, onComplete, onNote, onOpen }) {
   return (
     <div className="card fu" style={{ padding:0, marginBottom:11, overflow:'hidden', position:'relative',
       border:'1px solid var(--gold-line)' }}>
@@ -254,7 +254,7 @@ function BirthdayCard({ t, cust, onAction, onCall, onComplete, onNote, onOpen })
         <div style={{ fontSize:13, color:'var(--ink)', marginTop:3 }}>Send a warm birthday message today — {cust ? cust.tier+' customer' : 'valued customer'}.</div>
       </div>
       <div className="row gap8" style={{ padding:'0 14px 14px' }}>
-        <TaskAction icon="mail"  label="Email" gold onClick={onAction} />
+        <TaskAction icon="mail"  label="Email" gold onClick={onEmail} />
         <TaskAction icon="phone" label="Call" onClick={onCall} />
         <TaskAction icon="note"  label="Note" onClick={onNote} />
         <TaskAction icon="check" label="Done" onClick={onComplete} />
@@ -277,7 +277,7 @@ function TaskAction({ icon, label, gold, onClick }) {
 }
 
 /* ---- Compact alert card (Today's Alerts) ---- */
-function AlertCard({ t, onOpen, onComplete, onContact, onCall, i }) {
+function AlertCard({ t, onOpen, onComplete, onContact, onCall, onEmail, i }) {
   return (
     <div className="card fu" style={{ padding:14, marginBottom:10, animationDelay:(0.04*i)+'s' }}>
       <div className="press" onClick={onOpen} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
@@ -301,7 +301,7 @@ function AlertCard({ t, onOpen, onComplete, onContact, onCall, i }) {
       <div className="row gap8" style={{ marginTop:11 }}>
         <button onClick={onCall} className="alert-btn" style={{ color:'var(--gold)', background:'var(--gold-glow)', borderColor:'var(--gold-line)' }}>
           <Icon name="phone" size={15} />Call</button>
-        <button onClick={onContact} className="alert-btn">
+        <button onClick={onEmail} className="alert-btn">
           <Icon name="mail" size={15} />Email</button>
         <button onClick={onComplete} className="alert-btn">
           <Icon name="check" size={15} />Done</button>
@@ -412,13 +412,14 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
   const bday = openTasks.find(t => t.type === 'birthday');
   const rest = openTasks.filter(t => t.type !== 'birthday');
   // Resolve a task's contact phone (customer / lead / agent) for its Call button.
-  const phoneFor = (tk) => {
-    if (!tk) return '';
-    const c = tk.relatedType === 'lead' ? data.LEADS.find(x => x.id === tk.relatedId)
-            : tk.relatedType === 'agent' ? data.AGENTS.find(x => x.id === tk.relatedId)
-            : custById(tk.relatedId);
-    return c ? c.phone : '';
+  const contactOf = (tk) => {
+    if (!tk) return null;
+    return tk.relatedType === 'lead' ? data.LEADS.find(x => x.id === tk.relatedId)
+         : tk.relatedType === 'agent' ? data.AGENTS.find(x => x.id === tk.relatedId)
+         : custById(tk.relatedId);
   };
+  const phoneFor = (tk) => { const c = contactOf(tk); return c ? c.phone : ''; };
+  const emailFor = (tk) => { const c = contactOf(tk); return c ? c.email : ''; };
   // Workload summary — auto-calculated (High = urgent today, Medium = near-term, Upcoming = future)
   const workload = {
     high: openTasks.filter(t => t.priority === 'high').length,
@@ -442,6 +443,7 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
           onOpen={() => onOpenTarget(tgt(bday))}
           onAction={() => onOpenTarget(tgt(bday))}
           onCall={() => window.dialPhone(phoneFor(bday))}
+          onEmail={() => window.composeEmail(emailFor(bday))}
           onComplete={() => onComplete(bday)}
           onNote={() => onNote(bday.relatedId)} />
       )}
@@ -450,6 +452,7 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
           onOpen={() => onOpenTarget(tgt(t))}
           onContact={() => onOpenTarget(tgt(t))}
           onCall={() => window.dialPhone(phoneFor(t))}
+          onEmail={() => window.composeEmail(emailFor(t))}
           onComplete={() => onComplete(t)} />
       ))}
       {openTasks.length === 0 && (

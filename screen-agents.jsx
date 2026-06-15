@@ -63,7 +63,10 @@ function AgentCard({ a, i, onOpen, onSchedule }) {
             {next || 'Not scheduled'}</div>
         </div>
         <div className="row gap8" style={{ flex:'0 0 auto', marginLeft:10 }}>
-          <button className="rbtn gold" onClick={e=>{ e.stopPropagation(); }} title="Call"><Icon name="phone" size={16} /></button>
+          <button className="rbtn gold" title={a.phone && a.phone !== '—' ? 'Call ' + a.phone : 'No phone number'}
+            onClick={e=>{ e.stopPropagation();
+              if (a.phone && a.phone !== '—') window.location.href = 'tel:' + String(a.phone).replace(/[^\d+]/g, '');
+            }}><Icon name="phone" size={16} /></button>
           <button className="rbtn" onClick={e=>{ e.stopPropagation(); }} title="Email"><Icon name="mail" size={16} /></button>
           <button className="rbtn" onClick={e=>{ e.stopPropagation(); onSchedule(a); }} title="Schedule next action"><Icon name="calendar" size={16} /></button>
         </div>

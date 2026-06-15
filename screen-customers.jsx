@@ -32,7 +32,10 @@ function CustomerCard({ c, onOpen, i }) {
           <div className="row between" style={{ marginTop:12 }}>
             <span className={'pill '+b.cls}><Icon name={b.icon} size={13} />{b.txt}</span>
             <div className="row gap8">
-              <button className="rbtn gold" onClick={e=>e.stopPropagation()} title="Call"><Icon name="phone" size={17} /></button>
+              <button className="rbtn gold" title={c.phone && c.phone !== '—' ? 'Call ' + c.phone : 'No phone number'}
+                onClick={e=>{ e.stopPropagation();
+                  if (c.phone && c.phone !== '—') window.location.href = 'tel:' + String(c.phone).replace(/[^\d+]/g, '');
+                }}><Icon name="phone" size={17} /></button>
               <button className="rbtn" onClick={e=>e.stopPropagation()} title="Email"><Icon name="mail" size={17} /></button>
               <button className="rbtn" onClick={e=>e.stopPropagation()} title="Note"><Icon name="note" size={17} /></button>
             </div>

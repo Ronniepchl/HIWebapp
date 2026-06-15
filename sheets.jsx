@@ -359,7 +359,8 @@ function AddSheet({ kind, open, onClose, onAdd }) {
   const isAgent = kind === 'agents';
   const sources = isAgent ? ['Referral','Walk-in','Job board','LINE'] : ['Website','Referral','Facebook','LINE'];
   const [src, setSrc] = sUseState(sources[0]);
-  sUseEffect(() => { if (open) { setName(''); setSrc(sources[0]); } }, [open]);
+  const [phone, setPhone] = sUseState('');
+  sUseEffect(() => { if (open) { setName(''); setSrc(sources[0]); setPhone(''); } }, [open]);
   if (!open) return null;
   return (
     <SHEET open={true} onClose={onClose}>
@@ -367,12 +368,15 @@ function AddSheet({ kind, open, onClose, onAdd }) {
       <Field label="NAME">
         <input value={name} onChange={e=>setName(e.target.value)} placeholder="พิมพ์ชื่อ…" className="thai" style={inputStyle} />
       </Field>
+      <Field label="PHONE">
+        <input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="08x-xxx-xxxx" inputMode="tel" style={inputStyle} />
+      </Field>
       <Field label={isAgent ? 'CURRENT OCCUPATION / CHANNEL' : 'SOURCE'}>
         <div className="chips">
           {sources.map(s => <button key={s} className={'chip'+(src===s?' on':'')} onClick={()=>setSrc(s)}>{s}</button>)}
         </div>
       </Field>
-      <div style={{ marginTop:6 }}><GoldButton icon="plus" onClick={()=>onAdd(name||'New entry', src)}>Add to pipeline</GoldButton></div>
+      <div style={{ marginTop:6 }}><GoldButton icon="plus" onClick={()=>onAdd(name||'New entry', src, phone)}>Add to pipeline</GoldButton></div>
     </SHEET>
   );
 }

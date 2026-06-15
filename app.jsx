@@ -163,20 +163,21 @@ function App() {
     );
   };
 
-  const addEntry = (name, src) => {
+  const addEntry = (name, src, phone) => {
     const mono = (name.trim()[0]||'?') + (name.trim().split(' ')[1]?.[0]||'');
     const kind = addPipeline || tab;
     const tempId = (kind==='agents'?'na':'nl') + Date.now();
+    const ph = (phone || '').trim() || '—';
     setData(d => {
       const nd = { ...d };
-      if (kind==='agents') nd.AGENTS = [{ id:tempId, name, job:src, date:'Just added', stage:'interested', note:'New candidate — reach out soon', mono }, ...d.AGENTS];
-      else nd.LEADS = [{ id:tempId, name, src, date:'Just now', stage:'new', note:'New lead — not yet contacted', value:'฿—', mono }, ...d.LEADS];
+      if (kind==='agents') nd.AGENTS = [{ id:tempId, name, job:src, phone:ph, date:'Just added', stage:'interested', note:'New candidate — reach out soon', mono }, ...d.AGENTS];
+      else nd.LEADS = [{ id:tempId, name, src, phone:ph, date:'Just now', stage:'new', note:'New lead — not yet contacted', value:'฿—', mono }, ...d.LEADS];
       return nd;
     });
     setAdding(false);
     setAddPipeline(null);
-    if (kind==='agents') persistRow('addAgent', { name, job:src }, tempId, 'AGENTS');
-    else persistRow('addLead', { name, src }, tempId, 'LEADS');
+    if (kind==='agents') persistRow('addAgent', { name, job:src, phone }, tempId, 'AGENTS');
+    else persistRow('addLead', { name, src, phone }, tempId, 'LEADS');
   };
 
   const addCustomer = (f) => {

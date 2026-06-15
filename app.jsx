@@ -289,7 +289,8 @@ function App() {
     if (e) openDetail(type, e);
   };
   const searchAction = (kind, type, ent) => {
-    if (kind === 'call' || kind === 'email') return; // would dial / open mail client
+    if (kind === 'call') { window.dialPhone && window.dialPhone(ent.phone); return; }
+    if (kind === 'email') return; // would open mail client
     setSearchOpen(false);
     if (kind === 'note') {
       if (type === 'customer') setNote({ open:true, presetId: ent.id });

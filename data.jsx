@@ -40,6 +40,16 @@ window.SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwcfTmt2eU2I0
    ever split auth into a separate deployment. */
 window.LOGIN_WEBAPP_URL = window.SHEET_WEBAPP_URL;
 
+/* Dial a phone number via the device dialer (tel:). Strips formatting and
+   keeps a leading +. Returns false when there's no usable number so callers
+   can fall back. Used by every Call button across the app. */
+window.dialPhone = function (phone) {
+  var tel = String(phone == null ? '' : phone).replace(/[^\d+]/g, '');
+  if (!tel) return false;
+  window.location.href = 'tel:' + tel;
+  return true;
+};
+
 var __ifsheetSeq = 0;
 
 /* Low-level JSONP request to any Apps Script web app `url`. `params` is an

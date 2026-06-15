@@ -227,7 +227,7 @@ function CEOFocusHero({ focus, tasks, workload, dateStr, callTo, onOpenTarget, o
 }
 
 /* ---- Elegant birthday card (premium, not party) ---- */
-function BirthdayCard({ t, cust, onAction, onComplete, onNote, onOpen }) {
+function BirthdayCard({ t, cust, onAction, onCall, onComplete, onNote, onOpen }) {
   return (
     <div className="card fu" style={{ padding:0, marginBottom:11, overflow:'hidden', position:'relative',
       border:'1px solid var(--gold-line)' }}>
@@ -255,7 +255,7 @@ function BirthdayCard({ t, cust, onAction, onComplete, onNote, onOpen }) {
       </div>
       <div className="row gap8" style={{ padding:'0 14px 14px' }}>
         <TaskAction icon="mail"  label="Email" gold onClick={onAction} />
-        <TaskAction icon="phone" label="Call" onClick={onAction} />
+        <TaskAction icon="phone" label="Call" onClick={onCall} />
         <TaskAction icon="note"  label="Note" onClick={onNote} />
         <TaskAction icon="check" label="Done" onClick={onComplete} />
       </div>
@@ -277,7 +277,7 @@ function TaskAction({ icon, label, gold, onClick }) {
 }
 
 /* ---- Compact alert card (Today's Alerts) ---- */
-function AlertCard({ t, onOpen, onComplete, onContact, i }) {
+function AlertCard({ t, onOpen, onComplete, onContact, onCall, i }) {
   return (
     <div className="card fu" style={{ padding:14, marginBottom:10, animationDelay:(0.04*i)+'s' }}>
       <div className="press" onClick={onOpen} style={{ display:'flex', gap:12, alignItems:'flex-start' }}>
@@ -299,7 +299,7 @@ function AlertCard({ t, onOpen, onComplete, onContact, i }) {
         </div>
       </div>
       <div className="row gap8" style={{ marginTop:11 }}>
-        <button onClick={onContact} className="alert-btn" style={{ color:'var(--gold)', background:'var(--gold-glow)', borderColor:'var(--gold-line)' }}>
+        <button onClick={onCall} className="alert-btn" style={{ color:'var(--gold)', background:'var(--gold-glow)', borderColor:'var(--gold-line)' }}>
           <Icon name="phone" size={15} />Call</button>
         <button onClick={onContact} className="alert-btn">
           <Icon name="mail" size={15} />Email</button>
@@ -411,6 +411,14 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
   })();
   const bday = openTasks.find(t => t.type === 'birthday');
   const rest = openTasks.filter(t => t.type !== 'birthday');
+  // Resolve a task's contact phone (customer / lead / agent) for its Call button.
+  const phoneFor = (tk) => {
+    if (!tk) return '';
+    const c = tk.relatedType === 'lead' ? data.LEADS.find(x => x.id === tk.relatedId)
+            : tk.relatedType === 'agent' ? data.AGENTS.find(x => x.id === tk.relatedId)
+            : custById(tk.relatedId);
+    return c ? c.phone : '';
+  };
   // Workload summary — auto-calculated (High = urgent today, Medium = near-term, Upcoming = future)
   const workload = {
     high: openTasks.filter(t => t.priority === 'high').length,
@@ -433,6 +441,7 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
         <BirthdayCard t={bday} cust={custById(bday.relatedId)}
           onOpen={() => onOpenTarget(tgt(bday))}
           onAction={() => onOpenTarget(tgt(bday))}
+          onCall={() => window.dialPhone(phoneFor(bday))}
           onComplete={() => onComplete(bday)}
           onNote={() => onNote(bday.relatedId)} />
       )}
@@ -440,6 +449,7 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
         <AlertCard key={t.id} t={t} i={i}
           onOpen={() => onOpenTarget(tgt(t))}
           onContact={() => onOpenTarget(tgt(t))}
+          onCall={() => window.dialPhone(phoneFor(t))}
           onComplete={() => onComplete(t)} />
       ))}
       {openTasks.length === 0 && (

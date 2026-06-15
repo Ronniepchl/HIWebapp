@@ -105,7 +105,8 @@ function GenericDetail({ ctx, onClose, onContact }) {
         <button className="rbtn" onClick={onClose}><Icon name="x" size={18} /></button>
       </div>
       <div className="row gap10" style={{ marginBottom:18 }}>
-        {actions.map((a,i)=><BigAction key={i} icon={a[0]} label={a[1]} gold={a[2]} onClick={onClose} />)}
+        {actions.map((a,i)=><BigAction key={i} icon={a[0]} label={a[1]} gold={a[2]}
+          onClick={a[1]==='Call' ? () => window.dialPhone(e.phone) : onClose} />)}
       </div>
       <div className="card" style={{ padding:'14px 16px', marginBottom:18 }}>
         <div style={{ display:'flex', flexWrap:'wrap', rowGap:14 }}>
@@ -165,7 +166,7 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
 
       {/* quick actions */}
       <div className="row gap10" style={{ marginBottom:16 }}>
-        <BigAction icon="phone" label="Call" gold onClick={onClose} />
+        <BigAction icon="phone" label="Call" gold onClick={() => window.dialPhone(cust.phone)} />
         <BigAction icon="mail"  label="Email" onClick={onClose} />
         <BigAction icon="calendar" label="Follow-up" onClick={() => setTab('manage')} />
         <BigAction icon="check" label="Done" onClick={() => onComplete(cust)} />

@@ -403,10 +403,11 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
   // don't carry a phone, so we resolve against CUSTOMERS.)
   const callTo = (() => {
     const ready = (c) => c && c.phone && c.phone !== '—';
-    for (const t of openTasks) {
-      if (t.relatedType === 'customer') { const c = custById(t.relatedId); if (ready(c)) return c; }
-    }
-    return data.CUSTOMERS.find(ready) || null;
+    const contactFor = (t) => t.relatedType === 'lead'
+      ? data.LEADS.find(l => l.id === t.relatedId)
+      : custById(t.relatedId);
+    for (const t of openTasks) { const c = contactFor(t); if (ready(c)) return c; }
+    return data.CUSTOMERS.find(ready) || data.LEADS.find(ready) || null;
   })();
   const bday = openTasks.find(t => t.type === 'birthday');
   const rest = openTasks.filter(t => t.type !== 'birthday');

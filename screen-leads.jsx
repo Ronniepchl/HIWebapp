@@ -56,7 +56,10 @@ function LeadCard({ l, i, onOpen }) {
                 borderColor:`var(--${tone}-bg)` }}><span className="dot" style={{ width:6,height:6,background:`var(--${tone})` }}></span>{l.src}</span>
               <span style={{ fontSize:11, color:'var(--ink-low)', alignSelf:'center' }}>{l.date}</span>
             </div>
-            <button className="rbtn gold" onClick={e=>e.stopPropagation()} title="Call"><Icon name="phone" size={16} /></button>
+            <button className="rbtn gold" title={l.phone && l.phone !== '—' ? 'Call ' + l.phone : 'No phone number'}
+              onClick={e=>{ e.stopPropagation();
+                if (l.phone && l.phone !== '—') window.location.href = 'tel:' + String(l.phone).replace(/[^\d+]/g, '');
+              }}><Icon name="phone" size={16} /></button>
           </div>
         </div>
       </div>

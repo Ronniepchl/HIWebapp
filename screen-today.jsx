@@ -144,7 +144,7 @@ function WorkloadCard({ count, label, color, glow }) {
 }
 
 /* ---- The CEO Focus hero ---- */
-function CEOFocusHero({ focus, tasks, workload, dateStr, onOpenTarget, onNav, onCalendar, onNote }) {
+function CEOFocusHero({ focus, tasks, workload, dateStr, callTo, onOpenTarget, onNav, onCalendar, onNote }) {
   const top3 = tasks.slice(0, 3);
   const tgt = (t) => ({ type: t.relatedType, id: t.relatedId });
 
@@ -210,7 +210,14 @@ function CEOFocusHero({ focus, tasks, workload, dateStr, onOpenTarget, onNav, on
 
       {/* quick actions */}
       <div className="row gap8" style={{ padding:'0 16px 16px' }}>
-        <QuickBtn icon="phone"    label="Call" gold onClick={() => top3[0] && onOpenTarget(tgt(top3[0]))} />
+        <QuickBtn icon="phone" label="Call" gold onClick={() => {
+          if (callTo && callTo.phone) {
+            // Opens the phone's dialer with the number pre-filled, ready to call.
+            window.location.href = 'tel:' + String(callTo.phone).replace(/[^\d+]/g, '');
+          } else if (top3[0]) {
+            onOpenTarget(tgt(top3[0]));
+          }
+        }} />
         <QuickBtn icon="leads"    label="Leads"    onClick={() => onNav('leads')} />
         <QuickBtn icon="calendar" label="Calendar" onClick={onCalendar} />
         <QuickBtn icon="note"     label="Add note" onClick={onNote} />
@@ -391,6 +398,16 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
     .map(x => x.t);
   const custById = (id) => data.CUSTOMERS.find(c => c.id === id);
   const tgt = (t) => ({ type: t.relatedType, id: t.relatedId });
+  // Who the "Call" quick-action dials: the top open task's customer, else the
+  // first customer with a number, so the button is always live. (Built LEADS
+  // don't carry a phone, so we resolve against CUSTOMERS.)
+  const callTo = (() => {
+    const ready = (c) => c && c.phone && c.phone !== '—';
+    for (const t of openTasks) {
+      if (t.relatedType === 'customer') { const c = custById(t.relatedId); if (ready(c)) return c; }
+    }
+    return data.CUSTOMERS.find(ready) || null;
+  })();
   const bday = openTasks.find(t => t.type === 'birthday');
   const rest = openTasks.filter(t => t.type !== 'birthday');
   // Workload summary — auto-calculated (High = urgent today, Medium = near-term, Upcoming = future)
@@ -403,7 +420,7 @@ function TodayScreen({ data, onOpenTarget, onNav, onCalendar, onNote, onComplete
   return (
     <div className="screen" style={{ paddingTop:6 }}>
       {/* 1 — CEO Focus Today (hero) */}
-      <CEOFocusHero focus={data.CEO_FOCUS} tasks={openTasks} workload={workload} dateStr={dstr}
+      <CEOFocusHero focus={data.CEO_FOCUS} tasks={openTasks} workload={workload} dateStr={dstr} callTo={callTo}
         onOpenTarget={onOpenTarget} onNav={onNav} onCalendar={onCalendar} onNote={() => onNote()} />
 
       {/* 2 — Today's Alerts */}

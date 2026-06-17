@@ -400,7 +400,9 @@ function ScheduleNextAction({ agent, onClose, onSave }) {
   const [date, setDate] = sUseState('2026-06-15');
   const [time, setTime] = sUseState('14:00');
   const [remark, setRemark] = sUseState('');
-  sUseEffect(() => { if (agent) { setType('Interview'); setDate('2026-06-15'); setTime('14:00'); setRemark(''); } }, [agent && agent.id]);
+  const [guest, setGuest] = sUseState('');
+  sUseEffect(() => { if (agent) { setType('Interview'); setDate('2026-06-15'); setTime('14:00'); setRemark('');
+    setGuest(agent.email && agent.email !== '—' ? agent.email : ''); } }, [agent && agent.id]);
   if (!agent) return null;
   const at = ACTION_TYPES.find(a => a.id === type) || ACTION_TYPES[0];
   return (
@@ -439,20 +441,26 @@ function ScheduleNextAction({ agent, onClose, onSave }) {
           style={{ ...inputStyle, height:74, padding:'12px 14px', resize:'none', lineHeight:1.5 }} />
       </Field>
 
-      {/* future: one-tap Google Calendar sync */}
-      <div className="row gap10" style={{ margin:'2px 0 16px', padding:'11px 13px', borderRadius:13,
-        background:'var(--glass)', border:'1px dashed var(--glass-brd-2)', opacity:0.7 }}>
-        <Icon name="calendar" size={16} color="var(--ink-mid)" />
-        <span style={{ flex:1, fontSize:12, color:'var(--ink-mid)' }}>Sync to Google Calendar</span>
-        <span style={{ fontSize:10, fontWeight:700, letterSpacing:0.4, color:'var(--ink-low)',
-          border:'1px solid var(--glass-brd)', borderRadius:6, padding:'2px 6px' }}>SOON</span>
+      {/* Google Calendar sync — event lands on your calendar; guest gets invited */}
+      <div style={{ margin:'2px 0 16px', padding:'12px 13px', borderRadius:13,
+        background:'var(--gold-glow)', border:'1px solid var(--gold-line)' }}>
+        <div className="row gap10" style={{ marginBottom:10 }}>
+          <Icon name="calendar" size={16} color="var(--gold)" />
+          <span style={{ flex:1, fontSize:12.5, fontWeight:600, color:'var(--gold)' }}>Sync to Google Calendar</span>
+        </div>
+        <Field label="INVITE AGENT · GUEST EMAIL">
+          <input value={guest} onChange={e=>setGuest(e.target.value)} placeholder="agent@email.com" inputMode="email" style={inputStyle} />
+        </Field>
+        <div style={{ fontSize:11, color:'var(--ink-low)', marginTop:7, lineHeight:1.5 }}>
+          The event is added to your Google Calendar. Fill an email to invite the agent as a guest, or leave blank to skip the invite.
+        </div>
       </div>
 
       <div className="row gap10">
         <button onClick={onClose} style={{ flex:1, height:54, borderRadius:16, cursor:'pointer',
           background:'var(--glass-2)', border:'1px solid var(--glass-brd)', color:'var(--ink)',
           fontFamily:'var(--font-ui)', fontSize:15, fontWeight:600 }}>Cancel</button>
-        <div style={{ flex:1.4 }}><GoldButton icon="check" onClick={()=>onSave(agent, { type, date, time, remark:remark.trim(), tone:at.tone })}>Save</GoldButton></div>
+        <div style={{ flex:1.4 }}><GoldButton icon="check" onClick={()=>onSave(agent, { type, date, time, remark:remark.trim(), tone:at.tone, guest:guest.trim() })}>Save</GoldButton></div>
       </div>
     </SHEET>
   );

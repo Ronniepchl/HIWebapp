@@ -263,6 +263,14 @@ function App() {
         when:'Today · '+nowTime(), note: friendly + (plan.remark ? ' — '+plan.remark : ''),
       }, ...d.ACTIVITIES],
     }));
+    if (window.saveToSheet && window.SHEET_WEBAPP_URL) {
+      window.saveToSheet('addSchedule',
+        { agentId:agent.id, agentName:agent.name, type:plan.type, date:plan.date, time:plan.time, remark:plan.remark||'', guest:plan.guest||'' },
+        function(){},
+        function(err){ console.warn('[InsureFlow] schedule save failed:', err);
+          try { window.alert('Scheduled on screen, but saving to Google Calendar failed. Please try again.'); } catch(e){} }
+      );
+    }
     setSchedule(null);
   };
   const completeCustomerFollowup = (cust) => {

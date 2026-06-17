@@ -432,8 +432,18 @@ function ScheduleNextAction({ agent, onClose, onSave }) {
         <div style={{ flex:1 }}><Field label="DATE">
           <input type="date" value={date} onChange={e=>setDate(e.target.value)} style={{ ...inputStyle, colorScheme:'dark' }} />
         </Field></div>
-        <div style={{ flex:1 }}><Field label="TIME">
-          <input type="time" value={time} onChange={e=>setTime(e.target.value)} style={{ ...inputStyle, colorScheme:'dark' }} />
+        <div style={{ flex:1 }}><Field label="TIME (24H)">
+          <div className="row gap8">
+            <select value={(time||'00:00').split(':')[0]} onChange={e=>setTime(e.target.value+':'+(time||'00:00').split(':')[1])}
+              style={{ ...inputStyle, colorScheme:'dark', flex:1, cursor:'pointer' }}>
+              {Array.from({length:24},(_,h)=>{ const v=String(h).padStart(2,'0'); return <option key={v} value={v}>{v}</option>; })}
+            </select>
+            <span style={{ alignSelf:'center', color:'var(--ink-mid)', fontWeight:700 }}>:</span>
+            <select value={(time||'00:00').split(':')[1]} onChange={e=>setTime((time||'00:00').split(':')[0]+':'+e.target.value)}
+              style={{ ...inputStyle, colorScheme:'dark', flex:1, cursor:'pointer' }}>
+              {Array.from({length:12},(_,i)=>{ const v=String(i*5).padStart(2,'0'); return <option key={v} value={v}>{v}</option>; })}
+            </select>
+          </div>
         </Field></div>
       </div>
 

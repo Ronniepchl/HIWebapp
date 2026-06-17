@@ -245,7 +245,7 @@ function App() {
   };
   const saveSchedule = (agent, plan) => {
     const dd = new Date(plan.date + 'T00:00:00');
-    const isToday = plan.date === '2026-06-09';
+    const isToday = plan.date === (()=>{ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
     const dstr = isNaN(dd) ? plan.date : dd.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
     const friendly = `${plan.type} · ${isToday ? 'today' : dstr} ${plan.time}`;
     setData(d => ({

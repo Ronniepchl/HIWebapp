@@ -396,12 +396,13 @@ const ACTION_TYPES = [
 ];
 
 function ScheduleNextAction({ agent, onClose, onSave }) {
+  const todayStr = (() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); })();
   const [type, setType] = sUseState('Interview');
-  const [date, setDate] = sUseState('2026-06-15');
+  const [date, setDate] = sUseState(todayStr);
   const [time, setTime] = sUseState('14:00');
   const [remark, setRemark] = sUseState('');
   const [guest, setGuest] = sUseState('');
-  sUseEffect(() => { if (agent) { setType('Interview'); setDate('2026-06-15'); setTime('14:00'); setRemark('');
+  sUseEffect(() => { if (agent) { setType('Interview'); setDate(todayStr); setTime('14:00'); setRemark('');
     setGuest(agent.email && agent.email !== '—' ? agent.email : ''); } }, [agent && agent.id]);
   if (!agent) return null;
   const at = ACTION_TYPES.find(a => a.id === type) || ACTION_TYPES[0];

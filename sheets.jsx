@@ -141,6 +141,13 @@ const STATUS_OPTS = [
 ];
 const NEXT_OPTS = ['In 3 days','Next week','In 2 weeks','Next month'];
 
+function polTone(status) {
+  const s = String(status||'').toLowerCase();
+  if (s.indexOf('laps')>=0 || s.indexOf('expir')>=0 || s.indexOf('cancel')>=0) return 'due';
+  if (s.indexOf('pend')>=0 || s.indexOf('grace')>=0) return 'warn';
+  return 'ok';
+}
+
 function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
   const [tab, setTab] = sUseState('overview');
   const [note, setNote] = sUseState('');
@@ -160,7 +167,7 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
             <span className="pill" style={{ height:22, color: tierTone==='gold'?'var(--gold)':`var(--${tierTone})`,
               background: tierTone==='gold'?'var(--gold-glow)':`var(--${tierTone}-bg)`,
               borderColor: tierTone==='gold'?'var(--gold-line)':`var(--${tierTone}-bg)` }}>{cust.tier}</span>
-            <span style={{ fontSize:12, color:'var(--ink-mid)' }}>{cust.policy}</span>
+            <span style={{ fontSize:12, color:'var(--ink-mid)' }}>{cust.policy}{cust.policyCount > 1 ? ' · +'+(cust.policyCount-1)+' more' : ''}</span>
           </div>
         </div>
         <button className="rbtn" onClick={onClose}><Icon name="x" size={18} /></button>
@@ -182,11 +189,42 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
       </div>
 
       {tab==='overview' && (
-        <div className="card" style={{ padding:'16px', marginBottom:8 }}>
-          <div style={{ display:'flex', flexWrap:'wrap', rowGap:16 }}>
-            {[['Phone',cust.phone],['Birthday',cust.bday],['Premium',cust.premium],['Preferred',cust.preferred],
-              ['Last contact',cust.last],['Next action',cust.next],['Customer for',cust.years+' years'],['Status',STATUS_OPTS.find(s=>s.id===cust.status)?.label||'Active']]
-              .map((f,i)=><div key={i} style={{ flex:'1 1 45%' }}><Fact k={f[0]} v={f[1]} /></div>)}
+        <div>
+          {/* Policies — one row per policy, maintained in the Policies sheet tab */}
+          <div className="row between" style={{ margin:'0 2px 8px' }}>
+            <span style={{ fontSize:11, fontWeight:700, letterSpacing:0.6, color:'var(--ink-low)', textTransform:'uppercase' }}>
+              Policies{cust.policyCount ? ' · '+cust.policyCount : ''}</span>
+            <span style={{ fontSize:11.5, color:'var(--ink-mid)', fontFamily:'var(--font-num)' }}>
+              {cust.premium}<span style={{ color:'var(--ink-low)', fontFamily:'var(--font-ui)' }}> total</span></span>
+          </div>
+          {(cust.policies||[]).map((p,i)=>(
+            <div key={i} className="card" style={{ padding:'12px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ width:36, height:36, borderRadius:11, flex:'0 0 auto', display:'grid', placeItems:'center',
+                background:'var(--gold-glow)', color:'var(--gold)' }}><Icon name="shield" size={17} /></div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div className="thai t1" style={{ fontSize:14, fontWeight:600, color:'var(--ink-hi)' }}>{p.plan}</div>
+                <div style={{ fontSize:11.5, color:'var(--ink-mid)', marginTop:2 }}>
+                  {p.policyNo ? p.policyNo+' · ' : ''}{p.renewal ? 'Renews '+p.renewal : 'No renewal date'}</div>
+              </div>
+              <div style={{ textAlign:'right', flex:'0 0 auto' }}>
+                <div style={{ fontFamily:'var(--font-num)', fontSize:13, fontWeight:600, color:'var(--gold)' }}>{p.premium}</div>
+                <span className="pill" style={{ marginTop:4, height:18, fontSize:9.5, color:`var(--${polTone(p.status)})`,
+                  background:`var(--${polTone(p.status)}-bg)`, borderColor:`var(--${polTone(p.status)}-bg)` }}>{p.status}</span>
+              </div>
+            </div>
+          ))}
+          {(!cust.policies || !cust.policies.length) && (
+            <div className="card" style={{ padding:'14px', marginBottom:8, fontSize:12.5, color:'var(--ink-mid)', textAlign:'center' }}>
+              No policies on file. Add rows in the Policies sheet tab.</div>
+          )}
+
+          {/* Contact details */}
+          <div className="card" style={{ padding:'16px', marginTop:4, marginBottom:8 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', rowGap:16 }}>
+              {[['Phone',cust.phone],['Birthday',cust.bday],['Preferred',cust.preferred],['Last contact',cust.last],
+                ['Next action',cust.next],['Customer for',cust.years+' years'],['Status',STATUS_OPTS.find(s=>s.id===cust.status)?.label||'Active']]
+                .map((f,i)=><div key={i} style={{ flex:'1 1 45%' }}><Fact k={f[0]} v={f[1]} /></div>)}
+            </div>
           </div>
         </div>
       )}
@@ -218,11 +256,10 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
               ))}
             </div>
           </Field>
-          <Field label="POLICY">
-            <select value={cust.policy} onChange={e=>onUpdate(cust.id,{ policy:e.target.value })}
-              style={{ ...inputStyle, appearance:'none', WebkitAppearance:'none' }}>
-              {window.POLICY_TYPES.map(p => <option key={p} value={p} style={{ color:'#0a1428' }}>{p}</option>)}
-            </select>
+          <Field label="POLICIES">
+            <div style={{ fontSize:12.5, color:'var(--ink-mid)', lineHeight:1.55, padding:'2px' }}>
+              {(cust.policyCount||0)} {cust.policyCount===1?'policy':'policies'} on file. Add, edit, or remove policies in the{' '}
+              <b style={{ color:'var(--ink)' }}>Policies</b> tab of your Google Sheet — they sync here automatically.</div>
           </Field>
           <div style={{ marginTop:6 }}><GoldButton icon="check" onClick={() => onComplete(cust)}>Mark follow-up done</GoldButton></div>
         </div>

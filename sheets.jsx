@@ -198,19 +198,33 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
               {cust.premium}<span style={{ color:'var(--ink-low)', fontFamily:'var(--font-ui)' }}> total</span></span>
           </div>
           {(cust.policies||[]).map((p,i)=>(
-            <div key={i} className="card" style={{ padding:'12px 14px', marginBottom:8, display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:36, height:36, borderRadius:11, flex:'0 0 auto', display:'grid', placeItems:'center',
-                background:'var(--gold-glow)', color:'var(--gold)' }}><Icon name="shield" size={17} /></div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div className="thai t1" style={{ fontSize:14, fontWeight:600, color:'var(--ink-hi)' }}>{p.plan}</div>
-                <div style={{ fontSize:11.5, color:'var(--ink-mid)', marginTop:2 }}>
-                  {p.policyNo ? p.policyNo+' · ' : ''}{p.renewal ? 'Renews '+p.renewal : 'No renewal date'}</div>
+            <div key={i} className="card" style={{ padding:'12px 14px', marginBottom:8 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ width:36, height:36, borderRadius:11, flex:'0 0 auto', display:'grid', placeItems:'center',
+                  background:'var(--gold-glow)', color:'var(--gold)' }}><Icon name="shield" size={17} /></div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div className="thai t1" style={{ fontSize:14, fontWeight:600, color:'var(--ink-hi)' }}>{p.plan}</div>
+                  <div style={{ fontSize:11.5, color:'var(--ink-mid)', marginTop:2 }}>
+                    {p.policyNo ? p.policyNo+' · ' : ''}{p.renewal ? 'Renews '+p.renewal : 'No renewal date'}</div>
+                </div>
+                <div style={{ textAlign:'right', flex:'0 0 auto' }}>
+                  <div style={{ fontFamily:'var(--font-num)', fontSize:13, fontWeight:600, color:'var(--gold)' }}>{p.premium}</div>
+                  <span className="pill" style={{ marginTop:4, height:18, fontSize:9.5, color:`var(--${polTone(p.status)})`,
+                    background:`var(--${polTone(p.status)}-bg)`, borderColor:`var(--${polTone(p.status)}-bg)` }}>{p.status}</span>
+                </div>
               </div>
-              <div style={{ textAlign:'right', flex:'0 0 auto' }}>
-                <div style={{ fontFamily:'var(--font-num)', fontSize:13, fontWeight:600, color:'var(--gold)' }}>{p.premium}</div>
-                <span className="pill" style={{ marginTop:4, height:18, fontSize:9.5, color:`var(--${polTone(p.status)})`,
-                  background:`var(--${polTone(p.status)}-bg)`, borderColor:`var(--${polTone(p.status)}-bg)` }}>{p.status}</span>
-              </div>
+              {(p.riders && p.riders.length>0) && (
+                <div style={{ marginTop:10, paddingLeft:48 }}>
+                  <div style={{ fontSize:9, fontWeight:700, letterSpacing:0.5, color:'var(--ink-low)', textTransform:'uppercase', marginBottom:5 }}>
+                    Riders · {p.riders.length}</div>
+                  <div className="row gap8" style={{ flexWrap:'wrap' }}>
+                    {p.riders.map((r,ri)=>(
+                      <span key={ri} title={r.code} className="pill" style={{ height:19, fontSize:9.5, color:'var(--ink-mid)',
+                        background:'var(--glass-2)', borderColor:'var(--glass-brd)' }}>{r.label}{r.code?' · '+r.code:''}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {(!cust.policies || !cust.policies.length) && (

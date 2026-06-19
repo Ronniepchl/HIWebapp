@@ -219,8 +219,8 @@ function CustomerProfile({ cust, onClose, onAddRemark, onUpdate, onComplete }) {
                     Riders · {p.riders.length}</div>
                   <div className="row gap8" style={{ flexWrap:'wrap' }}>
                     {p.riders.map((r,ri)=>(
-                      <span key={ri} title={r.code} className="pill" style={{ height:19, fontSize:9.5, color:'var(--ink-mid)',
-                        background:'var(--glass-2)', borderColor:'var(--glass-brd)' }}>{r.label}{r.code?' · '+r.code:''}</span>
+                      <span key={ri} title={r.title||r.code||''} className="pill" style={{ height:19, fontSize:9.5, color:'var(--ink-mid)',
+                        background:'var(--glass-2)', borderColor:'var(--glass-brd)' }}>{r.label}{(r.title||r.code) && (r.title||r.code).length<=12 ? ' · '+(r.title||r.code) : ''}</span>
                     ))}
                   </div>
                 </div>
